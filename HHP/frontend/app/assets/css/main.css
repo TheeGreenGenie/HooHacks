@@ -1,0 +1,159 @@
+@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Reset ──────────────────────────────────────────────────────────────── */
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+}
+
+/* ── Global surface ─────────────────────────────────────────────────────── */
+body {
+  background-color: #0C0400;
+  color: #F5DEB3;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Custom scrollbar ───────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0C0400; }
+::-webkit-scrollbar-thumb { background: rgba(217,119,6,0.35); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(217,119,6,0.6); }
+
+/* ── Glass card ─────────────────────────────────────────────────────────── */
+.glass-card {
+  background: rgba(35, 14, 2, 0.72);
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  border: 1px solid rgba(217, 119, 6, 0.18);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.45),
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 200, 80, 0.05);
+}
+
+.glass-card-hover {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.glass-card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.55),
+    0 4px 12px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 200, 80, 0.07);
+}
+
+/* ── Floating nav glass ─────────────────────────────────────────────────── */
+.nav-glass {
+  background: rgba(10, 3, 0, 0.78);
+  backdrop-filter: blur(20px) saturate(130%);
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
+  border-bottom: 1px solid rgba(217, 119, 6, 0.18);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(217, 119, 6, 0.06);
+}
+
+/* ── 3D button ──────────────────────────────────────────────────────────── */
+.btn-3d {
+  box-shadow:
+    0 4px 0 rgba(0,0,0,0.4),
+    0 2px 6px rgba(0,0,0,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.1);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.btn-3d:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 0 rgba(0,0,0,0.4),
+    0 4px 10px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.btn-3d:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.4), inset 0 2px 3px rgba(0,0,0,0.25);
+}
+
+/* ── Glow text ──────────────────────────────────────────────────────────── */
+.text-glow {
+  text-shadow: 0 0 20px rgba(217, 119, 6, 0.55), 0 0 40px rgba(217, 119, 6, 0.2);
+}
+
+/* ── Gold divider ───────────────────────────────────────────────────────── */
+.gold-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(217,119,6,0.45), transparent);
+}
+
+/* ── Dropdown shadow ────────────────────────────────────────────────────── */
+.dropdown-shadow {
+  box-shadow:
+    0 10px 40px rgba(0,0,0,0.6),
+    0 2px 8px rgba(0,0,0,0.4),
+    0 0 0 1px rgba(217,119,6,0.15);
+}
+
+/* ── Mobile / small screen fixes ────────────────────────────────────────── */
+@media (max-width: 639px) {
+  /* Tighter page padding on small screens */
+  .max-w-7xl, .max-w-5xl, .max-w-4xl, .max-w-3xl, .max-w-2xl, .max-w-lg {
+    padding-left: 0.875rem !important;
+    padding-right: 0.875rem !important;
+  }
+
+  /* Prevent oversized headings on XS screens */
+  h1 { font-size: clamp(1.25rem, 6vw, 2rem) !important; }
+  h2 { font-size: clamp(1rem, 5vw, 1.5rem) !important; }
+
+  /* Touch targets: ensure buttons/links are at least 44px tall */
+  button, a[role="button"], .btn-3d {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Horizontal scroll container for wide tables */
+  .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Glass cards: reduce blur cost on mobile */
+  .glass-card {
+    backdrop-filter: blur(8px) saturate(110%);
+    -webkit-backdrop-filter: blur(8px) saturate(110%);
+  }
+
+  /* Plotly charts: full width, shorter height on mobile */
+  .js-plotly-plot, .plotly {
+    max-width: 100% !important;
+  }
+}
+
+/* ── Landscape mobile game helper ───────────────────────────────────────── */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Landscape: give the game canvas room to breathe */
+@media (max-height: 500px) and (orientation: landscape) {
+  .frontier-rider-wrapper {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+}
+
+/* ── Safe area insets (notched phones) ──────────────────────────────────── */
+@supports (padding: max(0px)) {
+  .nav-glass {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

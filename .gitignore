@@ -1,0 +1,48 @@
+# ── Secrets & credentials ─────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+gen-lang-client-*.json
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+HooVenv/
+*.egg-info/
+dist/
+build/
+.mypy_cache/
+.pytest_cache/
+
+# ── Node / Next.js ────────────────────────────────────────────────────────────
+node_modules/
+.next/
+out/
+*-lock.json
+.DS_Store
+
+# ── Claude internal ───────────────────────────────────────────────────────────
+.claude/
+
+# ── Dev utilities (not needed to run the app) ─────────────────────────────────
+check_apis.py
+gen_finance_pngs.py
+remove_logo_bg.py
+split_sprites.py
+sprite_descriptions.json
+logo_512.png
+logo_clean.png
+logo_game.png
+progress.txt
+additions.txt
+draft_plan_steps.txt
+background_images.png
+Gemini_Generated_Image_*.png
+sprite_prompts/
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+Thumbs.db
+Desktop.ini

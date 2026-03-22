@@ -27,6 +27,16 @@ out/
 # ── Claude internal ───────────────────────────────────────────────────────────
 .claude/
 
+# ── ML model binaries ────────────────────────────────────────────────────────
+*.keras
+*.h5
+*.pkl
+*.joblib
+
+# ── Build artifacts ───────────────────────────────────────────────────────────
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
 # ── Dev utilities (not needed to run the app) ─────────────────────────────────
 check_apis.py
 gen_finance_pngs.py

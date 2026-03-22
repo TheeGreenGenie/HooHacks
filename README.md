@@ -1,20 +1,31 @@
 # Frontier Finance 🤠
 
-A western-themed personal finance and stock trading platform built for HooHacks 2026.
-
-Manage your income, scan financial documents, get AI-powered savings suggestions, track stocks with ML predictions, and chat with Frontier Frank — your AI financial advisor.
+A western-themed personal finance and stock trading platform built for HooHacks 2026. Frontier Finance combines AI-powered financial analysis, real-time stock prediction, OCR document scanning, voice chat, and a mini-game into a single cohesive experience — all wrapped in a frontier aesthetic.
 
 ---
 
-## Features
+## What We Built
 
-- **Income & Spending** — Upload bank statements (PDF/JPG/PNG), OCR-extracts transactions automatically, manual income entry with Save/Apply session model
-- **Savings Suggestions** — AI-powered tips via Gemini, Snowflake, and OpenRouter with weekly/monthly/auto-delivery frequency options
-- **Nearby Stores** — Category and item search with geolocation-based store suggestions
-- **Stock Trading** — Search stocks, AI + ML price predictions, Plotly charts, portfolio management with buy/sell simulation
-- **Frontier Frank** — Voice chat AI financial advisor powered by ElevenLabs TTS and Gemini
-- **Frontier Rider** — Western-themed endless runner mini-game
-- **Auth0 Authentication** — Secure login, TOTP 2FA, profile management
+### Income & Spending
+Users upload bank statements, pay stubs, or any financial document (PDF, JPG, PNG). Google Cloud Vision extracts the raw text via OCR. A regex-based transaction parser identifies dates, descriptions, and amounts, categorizes them (dining, groceries, utilities, subscriptions, transport, shopping), and computes monthly totals, bills, disposable income, and yearly projections. Users can also enter manual income. All data is persisted to MongoDB keyed to their Auth0 identity. The page operates on a session model — changes are local until the user explicitly saves.
+
+### Savings Suggestions
+An AI routing layer queries Gemini, Snowflake, and OpenRouter in sequence, falling back to a rule-based engine if upstream providers fail or hit quota. Suggestions are tailored to the user's transaction history and shopping frequency (weekly, monthly, auto-delivery). Results are cached in-memory for 10 minutes to preserve API quota. A minimum of 6 suggestions is always guaranteed.
+
+### Nearby Stores
+Users search for items or browse by category (groceries, dining, shopping, transport, utilities). The backend queries merchant inventory data with optional geolocation filtering up to a 50-mile radius. Frequently purchased items from the user's transaction history are surfaced as quick-search chips. Store results are cached for 30 minutes.
+
+### Stock Trading
+Users search any ticker or company name. The backend fetches historical OHLCV data via Yahoo Finance, runs a TensorFlow LSTM + scikit-learn ensemble for next-day price prediction, and returns a full suite of Plotly charts — price history, volume, RSI, MACD, S&P 500 comparison, and a Boom Score rating. Users can buy and sell simulated positions stored in MongoDB with average cost tracking, P&L, and current value pulled live.
+
+### Frontier Frank (Voice Chat)
+An AI financial advisor powered by Gemini for natural language responses and ElevenLabs for text-to-speech audio. Users can ask anything about saving, investing, or budgeting and receive a spoken reply. Per-message voice replay is supported. Falls back to browser TTS if ElevenLabs is unavailable.
+
+### Frontier Rider
+A western-themed endless runner mini-game. The player jumps over bandits, sheriffs, and TNT barrels while collecting money bags, gold, and cattle for increasing cash rewards. Built entirely in React/Canvas with no external game engine.
+
+### Authentication
+Full Auth0 integration with JWT verification, TOTP two-factor authentication, email validation, password recovery, and magic link login. All finance and stock data is isolated per user via Auth0 sub.
 
 ---
 
@@ -22,169 +33,103 @@ Manage your income, scan financial documents, get AI-powered savings suggestions
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js 15, TypeScript, Tailwind CSS, Auth0 |
+| Frontend | Next.js 15, TypeScript, Tailwind CSS |
+| Auth | Auth0 (`@auth0/nextjs-auth0`) |
 | Backend | FastAPI, Python 3.11, uvicorn |
-| Database | MongoDB (local via mongod) |
-| AI | Gemini, Snowflake, OpenRouter, local fallback |
-| OCR | Google Cloud Vision |
-| Voice | ElevenLabs TTS |
-| Stocks | Yahoo Finance, scikit-learn, TensorFlow LSTM |
+| Database | MongoDB with motor + odmantic |
+| AI — Suggestions | Gemini (`google-generativeai`), Snowflake Cortex, OpenRouter |
+| AI — Voice | ElevenLabs TTS, browser SpeechSynthesis fallback |
+| OCR | Google Cloud Vision API |
+| Stock Data | Yahoo Finance (`yfinance`, `yahooquery`) |
+| Stock Prediction | TensorFlow LSTM, scikit-learn, pandas, NumPy |
+| Charts | Plotly + react-plotly.js |
+| Payments (stub) | Stripe, Solana, Wolfram Alpha |
 | Tunnel | ngrok static domain |
+| State | Redux Toolkit |
 
 ---
 
-## Prerequisites
+## Application Workflow
+
+```
+User logs in via Auth0
+        │
+        ├─► Profile page — name, age, phone, display name stored in MongoDB
+        │
+        ├─► Income & Spending
+        │       │
+        │       ├─ Upload document → OCR → parse transactions → store in MongoDB
+        │       ├─ Manual income entry → Apply (local recalculate) → Save (persist to DB)
+        │       └─ Dashboard: monthly income, expenses, bills, disposable income, yearly projections
+        │
+        ├─► Savings Suggestions
+        │       │
+        │       ├─ Pull user transaction history from MongoDB
+        │       ├─ Route through Gemini → Snowflake → OpenRouter → local fallback
+        │       └─ Return ≥6 categorized suggestions with estimated monthly savings
+        │
+        ├─► Nearby Stores
+        │       │
+        │       ├─ Derive frequent items from transaction history
+        │       ├─ Search merchant inventory by category or item name
+        │       └─ Filter by geolocation radius (up to 50 miles)
+        │
+        ├─► Stocks
+        │       │
+        │       ├─ Search ticker → fetch OHLCV via Yahoo Finance
+        │       ├─ Run LSTM + sklearn ensemble → next-day prediction + confidence interval
+        │       ├─ Render Plotly charts (price, volume, RSI, MACD, S&P comparison, Boom Score)
+        │       ├─ Buy → record position in MongoDB (shares, avg cost, payment method)
+        │       └─ Portfolio → live P&L against current price
+        │
+        ├─► Frontier Frank
+        │       │
+        │       ├─ User types or speaks a question
+        │       ├─ Gemini generates a financial advisor response
+        │       └─ ElevenLabs synthesizes speech → plays in browser
+        │
+        └─► Frontier Rider
+                └─ Endless runner — jump obstacles, collect money, track distance
+```
+
+---
+
+## Requirements
+
+**API Keys & Services required:**
+
+| Service | Purpose |
+|---|---|
+| Auth0 | Authentication, JWT, TOTP |
+| Google Cloud Vision | OCR document scanning |
+| Gemini (Google AI Studio) | AI suggestions + voice chat responses |
+| ElevenLabs | Text-to-speech for Frontier Frank |
+| AlphaVantage | Stock market data enrichment |
+| OpenRouter | Secondary AI provider for suggestions |
+| Snowflake Cortex | Primary AI provider for suggestions |
+| MongoDB | User data, transactions, portfolios |
+
+All AI providers degrade gracefully — if a key is missing or quota is exceeded, the system falls back to the next provider in the chain and ultimately to a rule-based engine. The app remains fully functional without any AI keys.
+
+**Prerequisites:**
 
 - Python 3.11+
 - Node.js 18+
-- MongoDB installed locally at `C:\Users\<you>\mongodb\bin\mongod.exe`
-- ngrok installed and authenticated
+- MongoDB installed locally
+- ngrok installed and authenticated (for public tunnel)
 
 ---
 
-## Setup
+## Credits & Inspiration
 
-### 1. Clone the repo
-
-```bash
-git clone <repo-url>
-cd HooHacks
-```
-
-### 2. Create your `.env` files
-
-Copy the example and fill in your keys:
-
-```bash
-cp env.example HHP/.env
-```
-
-Also create `HHP/frontend/.env` with your Auth0 and API URL values:
-
-```
-NEXT_PUBLIC_API_URL=http://localhost:8000
-AUTH0_SECRET=<your-auth0-secret>
-AUTH0_BASE_URL=http://localhost:3000
-AUTH0_ISSUER_BASE_URL=https://<your-auth0-domain>.us.auth0.com
-AUTH0_CLIENT_ID=<your-client-id>
-AUTH0_CLIENT_SECRET=<your-client-secret>
-```
-
-### 3. Create Python virtual environment
-
-```bash
-python -m venv HooVenv
-HooVenv\Scripts\activate
-pip install hatch
-cd HHP/backend/app
-hatch env create production
-```
-
-### 4. Install frontend dependencies
-
-```bash
-cd HHP/frontend
-npm install
-```
+- **Dino Game** by [apex-code002](https://github.com/apex-code002/Dino-Game) — original endless runner logic that inspired the Frontier Rider mini-game
+- **Full Stack FastAPI & Next.js** boilerplate — base project structure for the HHP backend/frontend scaffold
+- **inboard** by [br3ndonland](https://github.com/br3ndonland/inboard) — FastAPI + gunicorn/uvicorn Docker base image
+- **Traefik** — reverse proxy and SSL termination in the Docker stack
+- **Plotly** — interactive financial charts
+- **odmantic** — MongoDB ODM for async FastAPI
+- **Auth0** — authentication infrastructure
 
 ---
 
-## Running Locally
-
-```bash
-# Terminal 1 — Backend + MongoDB
-python launch_backend.py
-
-# Terminal 2 — Frontend
-cd HHP/frontend
-npm run dev
-```
-
-App runs at **http://localhost:3000**
-
----
-
-## Running with ngrok (public URL)
-
-```bash
-# Terminal 1
-python launch_backend.py
-
-# Terminal 2
-cd HHP/frontend && npm run dev
-
-# Terminal 3
-python launch_ngrok.py
-```
-
-Or use the single all-in-one launcher:
-
-```bash
-python launch.py
-```
-
----
-
-## Required API Keys
-
-| Key | Where to get it |
-|---|---|
-| `AUTH0_*` | [auth0.com](https://auth0.com) → Applications |
-| `GEMINI_API_KEY` | [aistudio.google.com](https://aistudio.google.com) → Get API Key |
-| `ELEVENLABS_API_KEY` | [elevenlabs.io](https://elevenlabs.io) → Profile → API Keys |
-| `GOOGLE_APPLICATION_CREDENTIALS` | [console.cloud.google.com](https://console.cloud.google.com) → Vision API → Service Account JSON |
-| `ALPHAVANTAGE_API_KEY` | [alphavantage.co](https://www.alphavantage.co/support/#api-key) |
-| `OPENROUTER_API_KEY` | [openrouter.ai](https://openrouter.ai) → Keys |
-| `SNOWFLAKE_API_KEY` | [app.snowflake.com](https://app.snowflake.com) → Admin → API Keys |
-| `MONGO_DATABASE_URI` | Local: `mongodb://localhost:27017` |
-
-All AI keys fall back gracefully to rule-based suggestions if not provided.
-
----
-
-## Project Structure
-
-```
-HooHacks/
-├── launch.py               # Start everything at once
-├── launch_backend.py       # Start backend + MongoDB
-├── launch_ngrok.py         # Start ngrok tunnel
-├── env.example             # Environment variable template
-└── HHP/
-    ├── backend/
-    │   └── app/
-    │       └── app/
-    │           ├── ai/         # Gemini, Snowflake, OpenRouter, fallback
-    │           ├── api/        # FastAPI routers (finances, stocks, users, voice)
-    │           ├── core/       # Auth0, config, deps
-    │           ├── crud/       # MongoDB CRUD helpers
-    │           ├── ml/         # Stock predictor (LSTM + scikit-learn)
-    │           ├── models/     # odmantic MongoDB models
-    │           ├── schemas/    # Pydantic schemas
-    │           └── services/   # OCR, document parser, merchant service
-    └── frontend/
-        └── app/
-            ├── finances/       # income, savings, stores, chat pages
-            ├── stocks/         # suggestions, portfolio, history pages
-            ├── frontier-rider/ # mini-game
-            ├── profile/        # user profile
-            └── lib/            # API clients, hooks, Auth0
-```
-
----
-
-## Demo Finance Documents
-
-The `HHP/` directory includes sample finance PNGs for testing the OCR scanner:
-
-- `finances_millionaire.png`
-- `finances_upper_middle.png`
-- `finances_middle_class.png`
-- `finances_average.png`
-- `finances_poverty.png`
-
-Upload any of these on the Income & Spending page to see the OCR pipeline in action.
-
----
-
-## Built at HooHacks 2026
+*Built at HooHacks 2026*
